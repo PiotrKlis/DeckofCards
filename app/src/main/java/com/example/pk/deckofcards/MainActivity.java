@@ -1,5 +1,6 @@
 package com.example.pk.deckofcards;
 
+import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -64,6 +65,20 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
 
+            }
+        });
+
+        btnGenerateDecks.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                AsyncTask.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        // All your networking logic
+                        // should be here
+                    }
+                });
             }
         });
     }
