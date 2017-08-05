@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">Deck of Cards</string>
+    <string name="txt_number_of_decks">Wybierz liczbę talii</string>
+    <string name="btn_generate_decks">Wygerenuj talie</string>
+    <string name="btn_draw_cards">Losuj karty</string>
+    <string name="txt_score">Wynik:</string>
+
+    <string-array name="decks_count">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+    </string-array>
+
+</resources>
