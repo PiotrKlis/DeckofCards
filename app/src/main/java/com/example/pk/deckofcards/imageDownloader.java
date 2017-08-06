@@ -12,7 +12,7 @@ import java.net.HttpURLConnection;
  * Created by PK on 06.08.2017.
  */
 
-public class imageDownloader extends AsyncTask<String, String, Bitmap> {
+public class ImageDownloader extends AsyncTask<String, String, Bitmap> {
 
     Bitmap image;
 

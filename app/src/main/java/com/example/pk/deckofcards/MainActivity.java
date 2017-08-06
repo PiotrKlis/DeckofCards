@@ -9,8 +9,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.GridLayout;
-import android.widget.ImageView;
+import android.widget.GridView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -19,7 +18,7 @@ import com.example.pk.deckofcards.model.Card;
 import com.example.pk.deckofcards.model.Deck;
 import com.example.pk.deckofcards.model.DrawCard;
 
-import java.util.List;
+import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 
 import retrofit2.Call;
@@ -33,14 +32,10 @@ public class MainActivity extends AppCompatActivity {
     Spinner spinner;
     Button btnGenerateDecks;
     Button btnDrawCards;
-    ImageView card1;
-    ImageView card2;
-    ImageView card3;
-    ImageView card4;
-    ImageView card5;
     TextView txtScore;
+    ArrayList<Bitmap> imagesArray;
 
-    GridLayout grid;
+    GridView gridView;
 
     RetrofitInterface jsonGetDecks;
     RetrofitInterface jsonGetCards;
@@ -61,13 +56,10 @@ public class MainActivity extends AppCompatActivity {
         spinner = (Spinner) findViewById(R.id.spinner);
         btnGenerateDecks = (Button) findViewById(R.id.btnGenerateDecks);
         btnDrawCards = (Button) findViewById(R.id.btnDrawCards);
-        card1 = (ImageView) findViewById(R.id.card1);
-        card2 = (ImageView) findViewById(R.id.card2);
-        card3 = (ImageView) findViewById(R.id.card3);
-        card4 = (ImageView) findViewById(R.id.card4);
-        card5 = (ImageView) findViewById(R.id.card5);
         txtScore = (TextView) findViewById(R.id.txtScore);
-        grid = (GridLayout) findViewById(R.id.gridLayout);
+        gridView = (GridView) findViewById(R.id.gridLayout);
+
+        imagesArray = new ArrayList<>();
 
         // Populate the spinner
 
@@ -139,14 +131,16 @@ public class MainActivity extends AppCompatActivity {
 
                                     Bitmap image = null;
                                     try {
-                                        image = new imageDownloader().execute(card.getImage()).get();
-                                        card1.setImageBitmap(image);
+                                        image = new ImageDownloader().execute(card.getImage()).get();
+                                        imagesArray.add(image);
 
                                     } catch (InterruptedException | ExecutionException e) {
                                         e.printStackTrace();
                                     }
 
-                                    GridAdapter gridAdapter = new GridAdapter(this, card);
+                                    GridAdapter gridAdapter = new GridAdapter(getApplicationContext(),
+                                            R.layout.grid_row, imagesArray);
+                                    gridView.setAdapter(gridAdapter);
 
                                 }
 
