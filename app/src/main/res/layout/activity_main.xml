@@ -69,30 +69,13 @@
         android:orientation="horizontal"
         android:layout_below="@+id/linearDraw">
 
-        <ImageView
-            android:id="@+id/card1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+        <GridLayout
+            android:id="@+id/gridLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
-        <ImageView
-            android:id="@+id/card2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+        </GridLayout>
 
-        <ImageView
-            android:id="@+id/card3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
-        <ImageView
-            android:id="@+id/card4"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
-        <ImageView
-            android:id="@+id/card5"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
     </LinearLayout>
 
     <LinearLayout
