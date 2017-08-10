@@ -17,7 +17,7 @@ import retrofit2.http.GET;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
 
-public interface RetrofitInterface {
+ interface RetrofitInterface {
 
     @GET("new/shuffle")
     Call<Deck> getDecks(@Query("deck_count") int count);
@@ -25,9 +25,8 @@ public interface RetrofitInterface {
     @GET("{deck_id}/draw/?count=5")
     Call<DrawCard> getCards(@Path("deck_id") String id);
 
-    @GET("<<{deck_id}>>/shuffle/")
-    Call<Deck> getReshuffle(@Query("count") int id);
-
+    @GET("{deck_id}/shuffle/")
+    Call<Deck> getReshuffle(@Path("deck_id") String id);
 
     Retrofit retrofit = new Retrofit.Builder()
             .baseUrl("https://deckofcardsapi.com/api/deck/")

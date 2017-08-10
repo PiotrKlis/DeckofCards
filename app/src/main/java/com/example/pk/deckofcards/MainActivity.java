@@ -10,6 +10,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.GridView;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -33,19 +34,19 @@ public class MainActivity extends AppCompatActivity {
     Button btnGenerateDecks;
     Button btnDrawCards;
     TextView txtScore;
-    ArrayList<Bitmap> imagesArray;
-
+    TextView txtStaticScore;
     GridView gridView;
+    ProgressBar progressBar;
 
     RetrofitInterface jsonGetDecks;
     RetrofitInterface jsonGetCards;
+    RetrofitInterface jsonReshuffle;
 
     String deckId;
     DrawCard cardList;
-    boolean reshuffle;
+    ArrayList<String> stringArrayList;
 
     // Default number of decks to generate
-
     int numberOfDecks = 1;
 
     @Override
@@ -53,15 +54,17 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        stringArrayList = new ArrayList<>();
+
         spinner = (Spinner) findViewById(R.id.spinner);
         btnGenerateDecks = (Button) findViewById(R.id.btnGenerateDecks);
         btnDrawCards = (Button) findViewById(R.id.btnDrawCards);
         txtScore = (TextView) findViewById(R.id.txtScore);
-        gridView = (GridView) findViewById(R.id.gridLayout);
+        gridView = (GridView) findViewById(R.id.gridView);
+        progressBar = (ProgressBar) findViewById(R.id.progressBar);
+        txtStaticScore = (TextView) findViewById(R.id.txtStaticScore);
 
-        imagesArray = new ArrayList<>();
-
-        // Populate the spinner
+        // Choose how many decks spinner
 
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
                 R.array.decks_count, android.R.layout.simple_spinner_item);
@@ -86,6 +89,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
+                progressBar.setVisibility(View.VISIBLE);
+
                 AsyncTask.execute(new Runnable() {
                     @Override
                     public void run() {
@@ -97,17 +102,22 @@ public class MainActivity extends AppCompatActivity {
                             @Override
                             public void onResponse(Call<Deck> call, Response<Deck> response) {
                                 deckId = response.body().getDeckId();
-                                Log.i(TAG, deckId);
-
+                                Log.i(TAG, "Deck id: " + deckId);
+                                Toast.makeText(getApplicationContext(), "Talia została wygenerowana",
+                                        Toast.LENGTH_SHORT).show();
+                                progressBar.setVisibility(View.INVISIBLE);
+                                btnDrawCards.setVisibility(View.VISIBLE);
 
                             }
 
                             @Override
                             public void onFailure(Call<Deck> call, Throwable t) {
-                                Toast.makeText(getApplicationContext(), "Wystąpił problem z połączeniem", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(getApplicationContext(), "Wystąpił problem z połączeniem",
+                                        Toast.LENGTH_SHORT).show();
+                                progressBar.setVisibility(View.INVISIBLE);
+
                             }
                         });
-
                     }
                 });
             }
@@ -116,52 +126,146 @@ public class MainActivity extends AppCompatActivity {
         btnDrawCards.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                AsyncTask.execute(new Runnable() {
+
+                progressBar.setVisibility(View.VISIBLE);
+                stringArrayList.clear();
+
+                jsonGetCards = RetrofitInterface.retrofit.create(RetrofitInterface.class);
+                Call<DrawCard> cardCall = jsonGetCards.getCards(deckId);
+
+                cardCall.enqueue(new Callback<DrawCard>() {
                     @Override
-                    public void run() {
-                        jsonGetCards = RetrofitInterface.retrofit.create(RetrofitInterface.class);
-                        Call<DrawCard> cardCall = jsonGetCards.getCards(deckId);
+                    public void onResponse(Call<DrawCard> call, Response<DrawCard> response) {
 
-                        cardCall.enqueue(new Callback<DrawCard>() {
-                            @Override
-                            public void onResponse(Call<DrawCard> call, Response<DrawCard> response) {
-                                cardList = response.body();
+                        cardList = response.body();
+                        ArrayList<Bitmap> imagesArray = new ArrayList<>();
 
-                                for (Card card : cardList.getCards()) {
+                        // Download images
 
-                                    Bitmap image = null;
-                                    try {
-                                        image = new ImageDownloader().execute(card.getImage()).get();
-                                        imagesArray.add(image);
+                        for (Card card : cardList.getCards()) {
 
-                                    } catch (InterruptedException | ExecutionException e) {
-                                        e.printStackTrace();
-                                    }
+                            stringArrayList.add(card.getCode());
 
-                                    GridAdapter gridAdapter = new GridAdapter(getApplicationContext(),
-                                            R.layout.grid_row, imagesArray);
-                                    gridView.setAdapter(gridAdapter);
+                            Bitmap image;
+
+                            try {
+                                image = new ImgDownloader().execute(card.getImage()).get();
+                                imagesArray.add(image);
+                                txtStaticScore.setVisibility(View.VISIBLE);
+                                progressBar.setVisibility(View.INVISIBLE);
+                            } catch (InterruptedException | ExecutionException e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+
+                        cardSchemas(stringArrayList);
+
+                        // Fill gridView with images
+
+
+                        GridAdapter gridAdapter = new GridAdapter(MainActivity.this,
+                                R.layout.grid_row, imagesArray);
+                        gridView.setAdapter(gridAdapter);
+
+
+
+                        if (cardList.getRemaining() < 5) {
+
+                            Toast.makeText(getApplicationContext(), "Ostatnie karty z talii. " +
+                                    "Następuje przetasowanie.", Toast.LENGTH_SHORT).show();
+
+                            jsonReshuffle = RetrofitInterface.retrofit.create(RetrofitInterface.class);
+                            Call<Deck> reshuffleDeckCall = jsonReshuffle.getReshuffle(deckId);
+
+                            reshuffleDeckCall.enqueue(new Callback<Deck>() {
+                                @Override
+                                public void onResponse(Call<Deck> call, Response<Deck> response) {
 
                                 }
 
-                                if (cardList.getRemaining() == 0) {
-                                    reshuffle = true;
-                                    Toast.makeText(getApplicationContext(), "Karty zostaną przetasowane przy kolejnym losowaniu", Toast.LENGTH_SHORT).show();
-
+                                @Override
+                                public void onFailure(Call<Deck> call, Throwable t) {
+                                    Toast.makeText(getApplicationContext(), "Wystąpił " +
+                                            "problem " + "z połączeniem, karty nie " +
+                                            "zostały przetasowane", Toast.LENGTH_SHORT).show();
                                 }
+                            });
 
-                            }
+                        }
 
-                            @Override
-                            public void onFailure(Call<DrawCard> call, Throwable t) {
-                                Toast.makeText(getApplicationContext(), "Wystąpił problem z połączeniem", Toast.LENGTH_SHORT).show();
-                            }
-                        });
+                        //txtStaticScore.setVisibility(View.VISIBLE);
+                        //progressBar.setVisibility(View.INVISIBLE);
+
+                    }
+
+                    @Override
+                    public void onFailure(Call<DrawCard> call, Throwable t) {
+                        Toast.makeText(getApplicationContext(), "Wystąpił problem z połączeniem",
+                                Toast.LENGTH_SHORT).show();
                     }
                 });
             }
         });
     }
 
+    /**
+     * Method which checks cards for given conditions and updates the Score TextView
+     *
+     * @param strings list of cards
+     */
 
+    public void cardSchemas(ArrayList<String> strings) {
+
+        ArrayList<String> valueArrayStrings = new ArrayList<>();
+        ArrayList<Integer> valueArrayInts;
+        ArrayList<String> suitArray = new ArrayList<>();
+        String resultScore;
+
+        valueArrayStrings.clear();
+        suitArray.clear();
+
+        // Seperate colors and values
+
+        for (String string : strings) {
+            String value = string.substring(0, 1);
+            valueArrayStrings.add(value);
+            String suit = string.substring(1, 2);
+            suitArray.add(suit);
+        }
+
+        Schemas schemas = new Schemas();
+
+        // Change String values into Ints
+        valueArrayInts = schemas.changeValuesToInts(valueArrayStrings);
+
+        // Check for "Stairs" and update result String
+        resultScore = schemas.stairs(valueArrayInts);
+
+        // Check for "Twins" and update result String
+        String resultTwins = schemas.twins(valueArrayInts);
+        if (!resultTwins.equals("") && !resultScore.equals("")) {
+            resultScore = resultScore + ", " + resultTwins;
+        } else {
+            resultScore = resultScore + resultTwins;
+        }
+
+        // Check for "Figures" and update result String
+        String resultFigures = schemas.figures(valueArrayStrings);
+        if (!resultFigures.equals("") && !resultScore.equals("")) {
+            resultScore = resultScore + ", " + resultFigures;
+        } else {
+            resultScore = resultScore + resultFigures;
+        }
+
+        // Check for "Color" and update result String
+        String resultColor = schemas.color(suitArray);
+        if (!resultColor.equals("") && !resultScore.equals("")) {
+            resultScore = resultScore + ", " + resultColor;
+        } else {
+            resultScore = resultScore + resultColor;
+        }
+
+        txtScore.setText(resultScore);
+    }
 }

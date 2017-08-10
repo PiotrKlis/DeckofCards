@@ -3,6 +3,7 @@ package com.example.pk.deckofcards;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,39 +20,42 @@ import java.util.ArrayList;
  * Created by PK on 06.08.2017.
  */
 
-public class GridAdapter extends ArrayAdapter<Bitmap> {
+ class GridAdapter extends ArrayAdapter<Bitmap> {
 
-    Context context;
-    int layoutResourceId;
-    ArrayList<Bitmap> data = new ArrayList<Bitmap>();
+    private Context context;
+    private int layoutResourceId;
+    private ArrayList<Bitmap> data = new ArrayList<>();
 
-    public GridAdapter(Context context, int layoutResourceId, ArrayList<Bitmap> data) {
+    GridAdapter(Context context, int layoutResourceId, ArrayList<Bitmap> data) {
         super(context, layoutResourceId, data);
         this.layoutResourceId = layoutResourceId;
         this.context = context;
         this.data = data;
     }
 
+    @NonNull
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(int position, View convertView, @NonNull ViewGroup parent) {
         View row = convertView;
-        RecordHolder holder = null;
+        RecordHolder holder;
+
         if (row == null) {
             LayoutInflater inflater = ((Activity) context).getLayoutInflater();
-            row = inflater.inflate(layoutResourceId, parent, false);
+            row = inflater.inflate(layoutResourceId, null);
+
             holder = new RecordHolder();
             holder.imageItem = (ImageView) row.findViewById(R.id.image_item);
             row.setTag(holder);
         } else {
             holder = (RecordHolder) row.getTag();
         }
-        //Item item = data.get(position);
-        //holder.txtTitle.setText(item.getTitle());
-        //holder.imageItem.setImageBitmap(item.getImage());
+
+        Bitmap item = getItem(position);
+        holder.imageItem.setImageBitmap(item);
         return row;
     }
 
-    static class RecordHolder {
+    private static class RecordHolder {
         ImageView imageItem;
     }
 

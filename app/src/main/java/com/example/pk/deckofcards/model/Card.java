@@ -21,9 +21,6 @@ public class Card {
     @SerializedName("suit")
     @Expose
     private String suit;
-    @SerializedName("images")
-    @Expose
-    private Images images;
 
     public String getValue() {
         return value;
@@ -55,14 +52,6 @@ public class Card {
 
     public void setSuit(String suit) {
         this.suit = suit;
-    }
-
-    public Images getImages() {
-        return images;
-    }
-
-    public void setImages(Images images) {
-        this.images = images;
     }
 
 }

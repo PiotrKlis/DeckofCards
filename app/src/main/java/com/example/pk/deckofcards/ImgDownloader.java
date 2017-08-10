@@ -10,11 +10,13 @@ import java.net.HttpURLConnection;
 
 /**
  * Created by PK on 06.08.2017.
+ *
+ * Class which downloads card images
  */
 
-public class ImageDownloader extends AsyncTask<String, String, Bitmap> {
+ class ImgDownloader extends AsyncTask<String, String, Bitmap> {
 
-    Bitmap image;
+    private Bitmap image;
 
     @Override
     protected Bitmap doInBackground(String... params) {
